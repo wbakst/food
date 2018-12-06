@@ -1,0 +1,56 @@
+# Communities
+
+        # Communities: Recipe Towns (Complement Network)
+
+        # Communities: Flavor Towns (Substitution Network)
+        
+        # Hypothesis: 
+            # Western Flavor Towns will likely correspond to Western Recipe Towns
+                # This is because of the Western use of similar overlaps
+            # Eastern Flavor Towns will likely NOT correspond to Eastern Recipe Towns
+
+
+# Generation
+
+    # 0. Seed Options:
+            # Human Seed Choice -- I kind of know the primary ingredients I want to eat
+            # Random Cuisine Choice -- I know the type of cuisine I want to eat
+            # Full Random (Random Cuisine Choice Followed by Random Within-Cuisine Choice) -- "I don't care," She said.
+
+    # 1. Only choose items within Recipe Towns of seed ingredients
+    
+    # 2. Embed the Ingredients and choose ingredients using Euclidean Distance 
+                 #(i.e. randomly choose one ingredient from top N closest)
+        
+    # For both generation methods:
+            # 1. Find Top N Closest Substitutable Ingredients
+            # 2. With probability p, substitute current choice with one of top N chosen randomly according to edge weight in substitution network.
+            
+    # Analysis: How have our graphs affected this generation process?
+    
+    # Run generation on OCN to compare results
+
+    # TEST FOOD PAIRING HYPOTHESIS AND ANALYZE ACCORDING TO GENERATED RECIPES FROM BOTH OCN AND UCN
+        # Key vs. Filler Ingredients
+
+        # Choose key ingredients from UCN and remaining ingredients from OCN
+
+
+# Analysis
+
+    # Recipes In Common
+    # COF
+    # PMI
+
+    # Degree Distributions
+    # Clustering Coefficients
+    # Top Weighted Edges
+    # Low Weighted Edges
+    # No Edges
+    # Page Rank of Nodes
+
+    # FUTURE:
+        # Visualizations
+        # Edge Weights by Region
+        # Top FF and RF
+        # Evaluation of Generated Recipes
