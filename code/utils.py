@@ -16,7 +16,7 @@ mapping_names = [
     'Flavor_to_CAS_Mapping',
     'CAS_to_List_of_Flavors_Mapping',
     'RID_to_List_of_Ingredients_Mapping',
-    'Cuising_to_List_of_Ingredients_Mapping',
+    'Cuisine_to_List_of_Ingredients_Mapping',
     'Ingredient_to_List_of_Cuisines_Mapping',
     'RID_to_Cuisine_Mappings',
     'Cuisine_to_List_of_RIDs_Mapping',
@@ -28,6 +28,21 @@ def load_mappings():
     mappings = {}
     for name in mapping_names:
         filename = '../data/mappings/{}.pkl'.format(name)
+        with open(filename, 'rb') as f:
+            mappings[name] = pickle.load(f)
+    return mappings
+
+# Load mappings for graph embeddings
+embedding_names = [
+    'ocn',
+    'fph',
+    'ucn',
+    'sn'
+]
+def load_embeddings():
+    mappings = {}
+    for name in embedding_names:
+        filename = '../data/mappings/{}_emb_map.pkl'.format(name)
         with open(filename, 'rb') as f:
             mappings[name] = pickle.load(f)
     return mappings
@@ -75,6 +90,9 @@ def load_sn():
 ##############################################
 ############# General Functions ##############
 ##############################################
+
+def euclidean_distance(X, Y):
+  return np.sqrt(((X - Y) ** 2).sum())
 
 def get_nbr_set(G, NId):
     return set([Nbr for Nbr in G.GetNI(NId).GetOutEdges()])

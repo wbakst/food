@@ -73,9 +73,9 @@ def get_recipes_info(filenames=recipe_filenames):
     # Map from RID to List of Ingredients
     rid_to_ingredients = {}
     # Map from Cuisine to List of Ingredients
-    cuisine_to_ingredients = {}
+    cuisine_to_ingredients = collections.defaultdict(set)
     # Map from Ingredient to List of Cuisines
-    ingredient_to_cuisines = collections.defaultdict(list)
+    ingredient_to_cuisines = collections.defaultdict(set)
     # Map from RID to Cuisine
     rid_to_cuisine = {}
     # Map from Cuisine to List of RIDs
@@ -88,10 +88,11 @@ def get_recipes_info(filenames=recipe_filenames):
             for line in file:
                 line = line.split()
                 Cuisine, Ingredients = line[0], line[1:]
+                Cuisine = Cuisine.lower()
                 rid_to_ingredients[RId] = Ingredients
-                cuisine_to_ingredients[Cuisine] = Ingredients
                 for Ingredient in Ingredients: 
-                    ingredient_to_cuisines[Ingredient].append(Cuisine)
+                    cuisine_to_ingredients[Cuisine].add(Ingredient)
+                    ingredient_to_cuisines[Ingredient].add(Cuisine)
                 rid_to_cuisine[RId] = Cuisine
                 cuisine_to_rids[Cuisine].append(RId)
                 RId += 1
@@ -134,7 +135,7 @@ mapping_names = [
     'Flavor_to_CAS_Mapping',
     'CAS_to_List_of_Flavors_Mapping',
     'RID_to_List_of_Ingredients_Mapping',
-    'Cuising_to_List_of_Ingredients_Mapping',
+    'Cuisine_to_List_of_Ingredients_Mapping',
     'Ingredient_to_List_of_Cuisines_Mapping',
     'RID_to_Cuisine_Mappings',
     'Cuisine_to_List_of_RIDs_Mapping',
@@ -410,14 +411,14 @@ def build_basic_graphs():
     # Build the Ingredient Recipe Bipartite Graph (retrieve new rids)
     IRGraph, rid_to_ingredients, old_to_new_rids = build_ingredient_recipe_graph(iid_to_ingredient, recipe_mappings[0])
     
-#     print 'IFGraph Num Nodes:', IFGraph.GetNodes()
-#     print 'IRGraph Num Nodes:', IRGraph.GetNodes()
+    print 'IFGraph Num Nodes:', IFGraph.GetNodes()
+    print 'IRGraph Num Nodes:', IRGraph.GetNodes()
     
     # Prune the graphs of ingredients not contained in recipes
     prune_graphs(IFGraph, IRGraph, iid_to_ingredient.keys())
     
-#     print '(POST PRUNE) IFGraph Num Nodes:', IFGraph.GetNodes()
-#     print '(POST PRUNE) IRGraph Num Nodes:', IRGraph.GetNodes()
+    print '(POST PRUNE) IFGraph Num Nodes:', IFGraph.GetNodes()
+    print '(POST PRUNE) IRGraph Num Nodes:', IRGraph.GetNodes()
     
     # Save the graphs as binary files for future quick loading
     save_graph(IFGraph, ingredient_flavor_graph_file)
@@ -435,7 +436,7 @@ def build_basic_graphs():
         flavor_mappings[1],          # Flavor to CAS Mapping
         flavor_mappings[2],          # CAS to List of Flavors Mapping
         rid_to_ingredients,          # RID to List of Ingredients Mapping
-        recipe_mappings[1],          # Cuising to List of Ingredients Mapping
+        recipe_mappings[1],          # Cuisine to List of Ingredients Mapping
         recipe_mappings[2],          # Ingredient to List of Cuisines Mapping
         rid_to_cuisine,              # RID to Cuisine Mappings
         cuisine_to_rids,             # Cuisine to List of RIDs Mapping
