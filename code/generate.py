@@ -55,6 +55,7 @@ def get_embeddings(embeddings, network, mappings, cuisine=None):
 
 	if cuisine == 'random':
 		cuisine = np.random.choice(mappings['Cuisine_to_List_of_Ingredients_Mapping'].keys())
+		print 'Randomly Chosen Cuisine: {}'.format(cuisine)
 
 	ingredient_to_iid = {Ingredient:IId for IId, Ingredient in mappings['IID_to_Ingredient_Mapping'].iteritems()}
 	Ingredients = [ingredient_to_iid[Ingredient] for Ingredient in mappings['Cuisine_to_List_of_Ingredients_Mapping'][cuisine]]
@@ -105,7 +106,7 @@ def substitute_avoids(SW, ocn_emb, avoids, recipe):
 		print 'This recipe may contain avoid items because of a lack of substitutable ingredients'
 	return NewRecipe
 
-def main():
+def main(analysis=False):
 	# Load mappings and embeddings for specified network(s)
 	mappings = ut.load_mappings()
 	embeddings = ut.load_embeddings()
@@ -135,6 +136,9 @@ def main():
 		recipe = substitute_avoids(SW, \
 										get_embeddings(embeddings, 'ocn', mappings, args.cuisine), avoid_iids, recipe)
 
+	if analysis:
+		return recipe
+
 	base_ingredients = num_ingredients - args.accent
 	for i, iid in enumerate(recipe):
 		if args.network == 'ocn_fph' and i >= base_ingredients:
@@ -142,7 +146,15 @@ def main():
 		else:
 			print mappings['IID_to_Ingredient_Mapping'][iid]
 
-
+def generate_recipe(seeds, cuisine, network, minimum, maximum, accent, avoids):
+	args.seed_ingredients = seeds
+	args.cuisine = cuisine
+	args.network = network
+	args.min = minimum
+	args.max = maximum
+	args.accent = accent
+	args.avoids = avoids
+	return main(analysis=True)
 
 if __name__ == '__main__':
 	main()

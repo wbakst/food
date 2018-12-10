@@ -1,7 +1,7 @@
-
+#!/usr/bin/env python
 # coding: utf-8
 
-# In[15]:
+# In[1]:
 
 
 import snap
@@ -17,7 +17,7 @@ from PIL import Image
 np.random.seed(42)
 
 
-# In[5]:
+# In[2]:
 
 
 # Load graphs and edge weights
@@ -33,7 +33,7 @@ RawCounts = sorted([(len(ut.get_common_neighbors(IRG, AIId, BIId)[0]),(AIId, BII
 RawCountsDict = {Edge:Count for Count, Edge in RawCounts}
 
 
-# In[94]:
+# In[47]:
 
 
 ##############################################
@@ -45,6 +45,19 @@ def hist_degree_distribution(G, name):
     filename = '../analysis/' + name + '_DegDistrHist'
     description = name + ': Degree Distribution Histogram'
     Histogram = [NI.GetDeg() for NI in G.Nodes()]
+    plt.xlabel('Node Degree')
+    plt.ylabel('Number of Nodes with a Given Degree')
+    plt.hist(Histogram)
+    plt.savefig(filename)
+    plt.show()
+    
+def weighted_hist_degree_distribution(G, W, name):
+    iid_to_weight = collections.defaultdict(int)
+    for Edge, Weight in W.iteritems():
+        iid_to_weight[Edge[0]] += Weight
+        iid_to_weight[Edge[1]] += Weight
+    filename = '../analysis/' + name + '_WeightedDegDistrHist'
+    Histogram = [weight for iid, weight in iid_to_weight.iteritems()]
     plt.xlabel('Node Degree')
     plt.ylabel('Number of Nodes with a Given Degree')
     plt.hist(Histogram)
@@ -75,11 +88,25 @@ def clustering_coefficient(G):
     print 'Average Clustering Coefficient:', Result[0]
 
 # Get the Top K Edge Weights of a complement network
-def print_top_w(W, K, iid_to_ingredient, Reverse=True):
-    OrderedWeights = sorted([(Weight, Edge) for Edge, Weight in W.iteritems()], reverse=Reverse)[:K]
+def print_top_w(W, K, iid_to_ingredient, name=None, Reverse=True):
+    print '\\begin{subtable}[b]{.23\linewidth}'
+    print '% {} Table'.format(name)
+    print '\centering'
+    print '\\begin{tabular}{c|c|c}'
+    print '\\textbf{Ingredient 1} & \\textbf{Ingredient 2} & \\textbf{Score}\\\\ \hline'
+    
+    
+    OrderedWeights = sorted([(Weight, Edge) for Edge, Weight in W.iteritems()                                      if Edge[0] in iid_to_ingredient and Edge[1] in iid_to_ingredient],                                             reverse=Reverse)[:K]
     for i, (Weight, Edge) in enumerate(OrderedWeights):
-        pairing = '{}. {},{} ({:.5f})'.format(i+1, iid_to_ingredient[Edge[0]], iid_to_ingredient[Edge[1]], Weight)
-        print pairing
+        pairing = '{} & {} & {:.3f}\\\\'.format(iid_to_ingredient[Edge[0]], iid_to_ingredient[Edge[1]], Weight)
+        if i < len(OrderedWeights) - 1:
+            print pairing, '\hline'
+        else:
+            print pairing
+        
+    print '\end{tabular}'
+    print '\caption{\\footnotesize {', name, '}}'
+    print '\end{subtable}'
         
 # Get random set of node pairs lacking an edge
 def print_no_edge_pairs(G, K):
@@ -169,7 +196,8 @@ def community_word_cloud(Communities, W, key_ingredient, name):
 # Network Analysis of G with weights W
 def analyze_network(G, W, name):
     hist_degree_distribution(G, name)
-    plot_degree_distribution(G, name)
+    weighted_hist_degree_distribution(G, W, name)
+#     plot_degree_distribution(G, name)
     clustering_coefficient(G)
     print_no_edge_pairs(G, 10)
     print_top_pr(G, 10, Mappings['IID_to_Ingredient_Mapping'])
@@ -185,40 +213,42 @@ def analyze_network(G, W, name):
         community_word_cloud(Communities, W, 'egg', name)
 
 # Analyze the ingredients in terms of 1. Common Recipes 2. FPHF 3.  4. PMI
-def analyze_ingredients(TopK, LowK, RecipeThreshold):
+def analyze_ingredients(TopK, Cuisine=None):
     iid_to_ingredient = Mappings['IID_to_Ingredient_Mapping']
     # Analyze Raw Counts
-    print 'Raw Counts:'
-    for Count, Edge in RawCounts[:TopK]:
-        print '{}, {}: {}'.format(iid_to_ingredient[Edge[0]], iid_to_ingredient[Edge[1]], Count)
-    print '\n'
+    # print 'Raw Counts:'
+    # for Count, Edge in RawCounts[:TopK]:
+    #     print '{}, {}: {}'.format(iid_to_ingredient[Edge[0]], iid_to_ingredient[Edge[1]], Count)
+    # print '\n'
     # Analyze FPHF
-    print 'FPHF Top Scores:'
-    print_top_w(FW, TopK, iid_to_ingredient, Reverse=True)
-    print '\n'
-    print 'FPHF Low Scores:'
-    print_top_w(FW, LowK, iid_to_ingredient, Reverse=False)
-    print '\n'
-    print 'COF Top Scores:'
-    print_top_w(UW, TopK, iid_to_ingredient, Reverse=True)
-    print '\n'
-    print 'COF Low Scores:'
-    print_top_w(UW, LowK, iid_to_ingredient, Reverse=False)
-    print '\n'
-    print 'SN Top Scores:'
-    print_top_w(SW, TopK, iid_to_ingredient, Reverse=True)
-    print '\n'
-    print 'SN Low Scores:'
-    print_top_w(SW, LowK, iid_to_ingredient, Reverse=False)
-    print '\n'
-    print 'PMI Top Scores:'
-    print_top_w(OW, TopK, iid_to_ingredient, Reverse=True)
-    print '\n'
-    print 'PMI Low Scores:'
-    print_top_w(OW, LowK, iid_to_ingredient, Reverse=False)
+    if Cuisine is not None:
+        # Filter iid_to_ingredient using only ingredients from given cuisine
+#         print 'Cuisine: {}'.format(Cuisine)
+        ingredients = Mappings['Cuisine_to_List_of_Ingredients_Mapping'][Cuisine]
+        ingredient_to_iid = {ingredient:iid for iid, ingredient in iid_to_ingredient.iteritems()}
+        iti = {ingredient_to_iid[ingredient]:ingredient for ingredient in ingredients}
+    else:
+        iti = iid_to_ingredient.copy()
+        
+    print '\\begin{table*}[!ht]'
+    print '\centering'
+    print '\\fontsize{6}{6}\selectfont'
+
+    print_top_w(FW, TopK, iti, 'FPHF', Reverse=True)
+    print_top_w(UW, TopK, iti, 'COF', Reverse=True)
+    print_top_w(SW, TopK, iti, 'SN', Reverse=True)
+    print_top_w(OW, TopK, iti, 'PMI', Reverse=True)
+    
+    if '_' in Cuisine:
+        Cuisine = ' '.join(Cuisine.split('_'))
+    print '\caption{Cuisine:', Cuisine, '}'
+    if ' ' in Cuisine:
+        Cuisine = '-'.join(Cuisine.split(' '))
+    print '\label{', '{}-top-scores'.format(Cuisine), '}'
+    print '\end{table*}'
 
 
-# In[95]:
+# In[48]:
 
 
 ###############################################
@@ -244,18 +274,20 @@ def analysis():
     analyze_network(SN, SW, 'SN')
     print '\n'
     # Ingredient Analysis
-    print 'Ingredient Analysis:\n'
-    analyze_ingredients(25, 10, 25)
+    cuisines = Mappings['Cuisine_to_List_of_Ingredients_Mapping'].keys()
+    for cuisine in sorted(cuisines):
+#         print 'Ingredient Analysis:\n'
+        analyze_ingredients(5, cuisine)
 
 
-# In[96]:
+# In[49]:
 
 
 if __name__ == '__main__':
     analysis()
 
 
-# In[8]:
+# In[ ]:
 
 
 ###############################################
@@ -286,9 +318,15 @@ def compare(Ingredient1, Ingredient2):
     print 'PMI:', PMI
 
 
-# In[12]:
+# In[ ]:
 
 
 compare('walnut', 'cashew')
 print '\n'
+
+
+# In[ ]:
+
+
+
 

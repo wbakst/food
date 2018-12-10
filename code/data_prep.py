@@ -64,6 +64,32 @@ def get_ingredient_flavor_info(filename=ingredients_flavors_file):
 
 ############ Recipe Data ############
 
+def clean_cuisine(cuisine):
+    if cuisine == 'china':
+        return 'chinese'
+    elif cuisine == 'france':
+        return 'french'
+    elif cuisine == 'germany':
+        return 'german'
+    elif cuisine == 'india':
+        return 'indian'
+    elif cuisine == 'italy':
+        return 'italian'
+    elif cuisine == 'japan':
+        return 'japanese'
+    elif cuisine == 'korea':
+        return 'korean'
+    elif cuisine == 'mexico':
+        return 'mexican'
+    elif cuisine == 'scandinavia':
+        return 'scandinavian'
+    elif cuisine == 'thailand':
+        return 'thai'
+    elif cuisine == 'vietnam':
+        return 'vietnamese'
+    else:
+        return cuisine
+
 # Recipe Information (Cuisine, List of Ingredients)
 menu_recipes_file = '../data/scirep-cuisines-detail/menu_recipes.txt'
 epic_recipes_file = '../data/scirep-cuisines-detail/epic_recipes.txt'
@@ -89,6 +115,7 @@ def get_recipes_info(filenames=recipe_filenames):
                 line = line.split()
                 Cuisine, Ingredients = line[0], line[1:]
                 Cuisine = Cuisine.lower()
+                Cuisine = clean_cuisine(Cuisine)
                 rid_to_ingredients[RId] = Ingredients
                 for Ingredient in Ingredients: 
                     cuisine_to_ingredients[Cuisine].add(Ingredient)
@@ -118,6 +145,8 @@ def get_region_info(filename=regions_file):
             line = line.split()
             if len(line) != 2: continue
             Cuisine, Region = line
+            Cuisine = Cuisine.lower()
+            Cuisine = clean_cuisine(Cuisine)
             cuisine_to_regions[Cuisine].append(Region)
             region_to_cuisines[Region].append(Cuisine)
             
