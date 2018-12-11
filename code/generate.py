@@ -53,10 +53,6 @@ def get_embeddings(embeddings, network, mappings, cuisine=None):
 	if cuisine is None:
 		return embeddings[network]
 
-	if cuisine == 'random':
-		cuisine = np.random.choice(mappings['Cuisine_to_List_of_Ingredients_Mapping'].keys())
-		print 'Randomly Chosen Cuisine: {}'.format(cuisine)
-
 	ingredient_to_iid = {Ingredient:IId for IId, Ingredient in mappings['IID_to_Ingredient_Mapping'].iteritems()}
 	Ingredients = [ingredient_to_iid[Ingredient] for Ingredient in mappings['Cuisine_to_List_of_Ingredients_Mapping'][cuisine]]
 
@@ -122,11 +118,17 @@ def main(analysis=False):
 	if args.accent > args.min:
 		raise Exception('Number of accent ingredients cannot be greater than the minimum number of ingredients.')
 
+	if args.cuisine == 'random':
+		cuisine = np.random.choice(mappings['Cuisine_to_List_of_Ingredients_Mapping'].keys())
+		print 'Randomly Chosen Cuisine: {}'.format(cuisine)
+	else:
+		cuisine = args.cuisine
+
 	if args.network == 'ocn_fph':
-		recipe = base_accent_generate(get_embeddings(embeddings, 'ocn', mappings, args.cuisine), \
-										get_embeddings(embeddings, 'fph', mappings, args.cuisine), args.seed_ingredients, num_ingredients, args.accent)
+		recipe = base_accent_generate(get_embeddings(embeddings, 'ocn', mappings, cuisine), \
+										get_embeddings(embeddings, 'fph', mappings, cuisine), args.seed_ingredients, num_ingredients, args.accent)
 	elif args.network == 'ucn':
-		recipe = generate(get_embeddings(embeddings, 'ucn', mappings, args.cuisine), args.seed_ingredients, num_ingredients)
+		recipe = generate(get_embeddings(embeddings, 'ucn', mappings, cuisine), args.seed_ingredients, num_ingredients)
 	else:
 		raise NotImplementedError
 
@@ -134,7 +136,7 @@ def main(analysis=False):
 		avoid_iids = [ingredient_to_iid[a] for a in args.avoids]
 		SN, SW = ut.load_sn()
 		recipe = substitute_avoids(SW, \
-										get_embeddings(embeddings, 'ocn', mappings, args.cuisine), avoid_iids, recipe)
+										get_embeddings(embeddings, 'ocn', mappings, cuisine), avoid_iids, recipe)
 
 	if analysis:
 		return recipe
